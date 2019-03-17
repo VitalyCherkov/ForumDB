@@ -16,6 +16,12 @@ FROM ubuntu:18.04
 
 ENV PG_VERSION=10
 
+ENV PORT=5000
+ENV DB_USER=docker
+ENV DB_PASSWORD=docker
+ENV DB_PORT=5432
+ENV DB_NAME=docker
+
 RUN apt-get update -y && apt-get install -y postgresql-$PG_VERSION postgresql-contrib
 
 USER postgres
@@ -27,8 +33,6 @@ RUN    /etc/init.d/postgresql start &&\
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/pg_hba.conf
 
 RUN echo "listen_addresses='*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-
-EXPOSE 5432
 
 # Add VOLUMEs to allow backup of config, logs and databases
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
