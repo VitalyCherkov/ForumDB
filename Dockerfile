@@ -42,6 +42,7 @@ USER root
 WORKDIR /app
 
 COPY --from=builder /src/go-boundle .
+COPY --from=builder /src/migrations ./migrations
 
 EXPOSE 5000
 CMD service postgresql start && ./go-boundle

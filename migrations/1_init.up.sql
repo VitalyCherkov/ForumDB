@@ -1,6 +1,6 @@
-CREATE IF NOT EXISTS EXTENSION citext;
+CREATE EXTENSION IF NOT EXISTS citext;
 
-CREATE TABLE IF NOT EXISTS user (
+CREATE TABLE IF NOT EXISTS fuser (
   nickname CITEXT PRIMARY KEY,
   fullname TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS user (
 
 CREATE TABLE IF NOT EXISTS forum (
   slug TEXT PRIMARY KEY,
-  author CITEXT REFERENCES user(nickname) NOT NULL,
+  author CITEXT REFERENCES fuser(nickname) NOT NULL,
   title TEXT NOT NULL,
   posts INTEGER DEFAULT 0,
   threads INTEGER DEFAULT 0
@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS forum (
 CREATE TABLE IF NOT EXISTS thread (
   id SERIAL PRIMARY KEY,
   slug TEXT UNIQUE NOT NULL,
-  forum TEXT REFERENCES forum(nickanme) NOT NULL,
-  author CITEXT REFERENCES user(nickname) NOT NULL,
-  created TIMESTAMP WTIH TIME ZONE DEFAULT now(),
+  forum TEXT REFERENCES forum(slug) NOT NULL,
+  author CITEXT REFERENCES fuser(nickname) NOT NULL,
+  created TIMESTAMP WITH TIME ZONE DEFAULT now(),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
   votes INTEGER DEFAULT 0
@@ -28,25 +28,24 @@ CREATE TABLE IF NOT EXISTS thread (
 
 CREATE TABLE IF NOT EXISTS vote (
   id INTEGER REFERENCES thread(id) NOT NULL,
-  user CITEXT REFERENCES user(nickname) NOT NULL,
+  fuser CITEXT REFERENCES fuser(nickname) NOT NULL,
   value INTEGER NOT NULL,
-  PRIMARY KEY(id, user)
+  PRIMARY KEY(id, fuser)
 );
 
-CREATE TABLE IF NOT EXISTS forum_user (
+CREATE TABLE IF NOT EXISTS forum_fuser (
   forum TEXT REFERENCES forum(slug) NOT NULL,
-  user CITEXT REFERENCES user(nickname) NOT NULL,
-  PRIMARY KEY(forum, user)
+  fuser CITEXT REFERENCES fuser(nickname) NOT NULL,
+  PRIMARY KEY(forum, fuser)
 );
 
 CREATE TABLE IF NOT EXISTS post (
   id SERIAL PRIMARY KEY,
-  author CITEXT REFERENCES user(nickname) NOT NULL,
+  author CITEXT REFERENCES fuser(nickname) NOT NULL,
   thread INTEGER REFERENCES thread(id) NOT NULL,
   forum TEXT NOT NULL,
   message TEXT NOT NULL,
   parent INTEGER DEFAULT 0,
-  is_edited BOOLEAD DEFAULT false,
-  created TIMESTAMP WTIH TIME ZONE DEFAULT now()
+  is_edited BOOLEAN DEFAULT false,
+  created TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
-

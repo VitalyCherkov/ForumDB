@@ -24,6 +24,7 @@ func main() {
 		panic("Can not connect to postgres\n")
 	}
 	env.DB = db
+	defer db.Close()
 
 	fmt.Println(http.ListenAndServe(":"+os.Getenv("PORT"), mainRouter))
 }

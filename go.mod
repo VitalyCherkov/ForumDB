@@ -1,6 +1,8 @@
 module ForumDB
 
 require (
+	github.com/golang-migrate/migrate v3.5.4+incompatible // indirect
+	github.com/golang-migrate/migrate/v4 v4.2.5
 	github.com/golangci/golangci-lint v1.15.0 // indirect
 	github.com/gorilla/mux v1.7.0
 	github.com/jmoiron/sqlx v1.2.0
