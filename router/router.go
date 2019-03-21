@@ -9,6 +9,7 @@ import (
 
 func Init(env *models.Env) *mux.Router {
 	r := mux.NewRouter()
+	r.Use(applicationJSONMiddleware)
 	api := r.PathPrefix("/api").Subrouter()
 
 	for _, route := range routes {

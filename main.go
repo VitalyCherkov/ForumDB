@@ -21,7 +21,8 @@ func main() {
 		os.Getenv("DB_NAME"),
 	)
 	if err != nil {
-		panic("Can not connect to postgres\n")
+		panicMsg := fmt.Sprintf("Can not connect to postgres: %v\n", err)
+		panic(panicMsg)
 	}
 	env.DB = db
 	defer db.Close()

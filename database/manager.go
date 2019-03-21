@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -46,6 +47,7 @@ func Init(user, password, port, dbName string) (db *sqlx.DB, err error) {
 	)
 
 	db, err = sqlx.Open("postgres", connectionString)
+	db.SetMaxOpenConns(50)
 
 	if err != nil {
 		return nil, err
@@ -58,12 +60,14 @@ func Init(user, password, port, dbName string) (db *sqlx.DB, err error) {
 
 	fmt.Printf("successfully connected to database\n")
 
-	err = makeMigrations(db, dbName)
-	if err != nil {
-		fmt.Printf("[ERROR] falid to process migrations: %v\n", err)
-		db.Close()
-		return nil, err
+	runtimeMode := os.Getenv("MOD")
+	if runtimeMode != "DEV" {
+		err = makeMigrations(db, dbName)
+		if err != nil {
+			fmt.Printf("[ERROR] falid to process migrations: %v\n", err)
+			db.Close()
+			return nil, err
+		}
 	}
-
 	return db, nil
 }

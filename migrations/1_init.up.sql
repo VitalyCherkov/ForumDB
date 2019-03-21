@@ -3,12 +3,12 @@ CREATE EXTENSION IF NOT EXISTS citext;
 CREATE TABLE IF NOT EXISTS fuser (
   nickname CITEXT PRIMARY KEY,
   fullname TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL,
+  email CITEXT UNIQUE NOT NULL,
   about TEXT
 );
 
 CREATE TABLE IF NOT EXISTS forum (
-  slug TEXT PRIMARY KEY,
+  slug CITEXT PRIMARY KEY,
   author CITEXT REFERENCES fuser(nickname) NOT NULL,
   title TEXT NOT NULL,
   posts INTEGER DEFAULT 0,
@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS forum (
 
 CREATE TABLE IF NOT EXISTS thread (
   id SERIAL PRIMARY KEY,
-  slug TEXT UNIQUE NOT NULL,
-  forum TEXT REFERENCES forum(slug) NOT NULL,
+  slug CITEXT UNIQUE NOT NULL,
+  forum CITEXT REFERENCES forum(slug) NOT NULL,
   author CITEXT REFERENCES fuser(nickname) NOT NULL,
   created TIMESTAMP WITH TIME ZONE DEFAULT now(),
   title TEXT NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS vote (
 );
 
 CREATE TABLE IF NOT EXISTS forum_fuser (
-  forum TEXT REFERENCES forum(slug) NOT NULL,
+  forum CITEXT REFERENCES forum(slug) NOT NULL,
   fuser CITEXT REFERENCES fuser(nickname) NOT NULL,
   PRIMARY KEY(forum, fuser)
 );
