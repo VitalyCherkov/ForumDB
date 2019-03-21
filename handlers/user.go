@@ -23,7 +23,7 @@ func HandleUserCreate(env *models.Env) http.HandlerFunc {
 			return
 		}
 
-		err = database.CreateUser(env, nickname, user)
+		err = database.UserCreate(env, nickname, user)
 
 		if err == nil {
 			w.WriteHeader(http.StatusCreated)
@@ -42,11 +42,8 @@ func HandleUserCreate(env *models.Env) http.HandlerFunc {
 			return
 		case *models.DatabaseError:
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Println(err.Error())
 			return
 		}
-
-		fmt.Printf(nickname, *user)
 	}
 }
 
@@ -55,7 +52,20 @@ func HandleUserGet(env *models.Env) http.HandlerFunc {
 		vars := mux.Vars(r)
 		nickname := vars["nickname"]
 
-		fmt.Printf(nickname)
+		user, err := database.UserGet(env, nickname)
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(user, w)
+			return
+		}
+		switch err.(type) {
+		case *models.ErrorNotFound:
+			err := err.(*models.ErrorNotFound)
+			w.WriteHeader(http.StatusNotFound)
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+		default:
+			w.WriteHeader(http.StatusBadRequest)
+		}
 	}
 }
 
@@ -69,7 +79,27 @@ func HandleUserUpdate(env *models.Env) http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
-
-		fmt.Printf(nickname, *user)
+		err = database.UserUpdate(env, nickname, user)
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(&models.UserDetail{
+				Nickname:  nickname,
+				UserShort: *user,
+			}, w)
+			return
+		}
+		switch err.(type) {
+		case *models.ErrorConflict:
+			w.WriteHeader(http.StatusConflict)
+			err := err.(*models.ErrorConflict)
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+		case *models.ErrorNotFound:
+			w.WriteHeader(http.StatusNotFound)
+			err := err.(*models.ErrorNotFound)
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+		default:
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+		}
 	}
 }
