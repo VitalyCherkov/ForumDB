@@ -74,18 +74,15 @@ func HandleUserUpdate(env *models.Env) http.HandlerFunc {
 		vars := mux.Vars(r)
 		nickname := vars["nickname"]
 
-		user := &models.UserShort{}
+		user := &models.UserDetail{}
 		err := unmarshalBody(r, user)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
-		err = database.UserUpdate(env, nickname, user)
+		updatedUser, err := database.UserUpdate(env, nickname, user)
 		if err == nil {
 			w.WriteHeader(http.StatusOK)
-			_, _, _ = easyjson.MarshalToHTTPResponseWriter(&models.UserDetail{
-				Nickname:  nickname,
-				UserShort: *user,
-			}, w)
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(updatedUser, w)
 			return
 		}
 		switch err.(type) {

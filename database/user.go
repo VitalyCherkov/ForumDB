@@ -3,6 +3,8 @@ package database
 import (
 	"ForumDB/models"
 	"database/sql"
+	"strconv"
+	"strings"
 
 	"github.com/lib/pq"
 )
@@ -21,15 +23,6 @@ const (
 	queryInsertUser = `
 		INSERT INTO fuser (nickname, email, fullname, about)
 		VALUES ($1, $2, $3, $4)
-	`
-
-	queryUpdateUser = `
-		UPDATE fuser
-		SET email = $2,
-		    fullname = $3,
-		    about = $4
-		WHERE nickname = $1
-		RETURNING *
 	`
 )
 
@@ -80,22 +73,59 @@ func UserGet(env *models.Env, nickname string) (user *models.UserDetail, err err
 	return user, nil
 }
 
-func UserUpdate(env *models.Env, nickname string, short *models.UserShort) (err error) {
-	_, err = env.DB.Query(queryUpdateUser, nickname, short.Email, short.FullName, short.About)
-	if err == nil {
-		return nil
+func userIsNoUpdate(user *models.UserDetail) bool {
+	return user.Nickname == "" && user.Email == "" && user.About == "" && user.FullName == ""
+}
+
+func userBuildUpdateQuery(nickname string, user *models.UserDetail) (string, []interface{}) {
+	q := strings.Builder{}
+	q.WriteString("UPDATE fuser SET")
+	args := make([]interface{}, 0, 5)
+
+	buildItem := func(fieldValue, filedName string) {
+		if fieldValue != "" {
+			args = append(args, fieldValue)
+			count := len(args)
+			if count > 1 {
+				q.WriteString(",")
+			}
+			q.WriteString(" " + filedName + " = $" + strconv.Itoa(count))
+		}
 	}
+
+	buildItem(user.Nickname, "nickname")
+	buildItem(user.Email, "email")
+	buildItem(user.FullName, "fullname")
+	buildItem(user.About, "about")
+	args = append(args, nickname)
+	q.WriteString(" WHERE fuser.nickname = $" + strconv.Itoa(len(args)) + " RETURNING *")
+
+	return q.String(), args
+}
+
+func UserUpdate(env *models.Env, nickname string, detail *models.UserDetail) (user *models.UserDetail, err error) {
+	if userIsNoUpdate(detail) {
+		return UserGet(env, nickname)
+	}
+
+	query, args := userBuildUpdateQuery(nickname, detail)
+	user = &models.UserDetail{}
+	err = env.DB.Get(user, query, args...)
+	if err == nil {
+		return user, nil
+	}
+
 	if err == sql.ErrNoRows {
-		return &models.ErrorNotFound{
+		return nil, &models.ErrorNotFound{
 			Message: "Can not find user with such nickname to update",
 		}
 	}
 	if err.(*pq.Error).Code == uniqueViolationCode {
-		return &models.ErrorConflict{
+		return nil, &models.ErrorConflict{
 			Message: err.Error(),
 		}
 	}
-	return &models.DatabaseError{
+	return nil, &models.DatabaseError{
 		Message: err.Error(),
 	}
 }

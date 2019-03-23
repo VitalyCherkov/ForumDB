@@ -32,4 +32,17 @@ var routes = []Route{
 		"POST",
 		handlers.HandleUserUpdate,
 	},
+
+	{
+		"ForumCreate",
+		"/forum/create",
+		"POST",
+		handlers.HandleForumCreate,
+	},
+	{
+		"ForumGet",
+		"/forum/{slug}/details",
+		"GET",
+		handlers.HandleForumGet,
+	},
 }
