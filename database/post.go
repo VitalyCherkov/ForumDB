@@ -90,7 +90,7 @@ func PostCreateList(
 		err = parentPostStatement.QueryRow(k).Scan(&parentThreadId)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				return nil, &models.ErrorNotFound{
+				return nil, &models.ErrorPostIncorrectThreadOfParent{
 					Message: fmt.Sprintf(`post create: can not find parent post with id = "%d"`, k),
 				}
 			} else {
