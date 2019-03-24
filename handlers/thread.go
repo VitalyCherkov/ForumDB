@@ -95,7 +95,6 @@ func HandleThreadDetails(env *models.Env) http.HandlerFunc {
 
 		if threadDBErr == nil {
 			_, _, _ = easyjson.MarshalToHTTPResponseWriter(thread, w)
-			w.WriteHeader(http.StatusOK)
 			return
 		}
 		switch threadDBErr.(type) {

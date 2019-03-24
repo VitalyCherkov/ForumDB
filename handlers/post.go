@@ -5,6 +5,10 @@ import (
 	"ForumDB/models"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/gorilla/mux"
 
 	"github.com/mailru/easyjson"
 )
@@ -39,5 +43,61 @@ func HandlePostListCreate(env *models.Env) http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Println(err.Error())
 		}
+	}
+}
+
+func HandlePostDetail(env *models.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, err := strconv.ParseUint(vars["id"], 10, 64)
+		if err != nil {
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		postCombined := &models.PostCombined{}
+		postCombined.Post, err = database.PostGetDetail(env, id)
+		if err != nil {
+			if !processErrorNotFound(w, err) {
+				fmt.Println(err.Error())
+				w.WriteHeader(http.StatusBadRequest)
+			}
+			return
+		}
+
+		paramsList := strings.Split(
+			r.URL.Query().Get("related"),
+			",",
+		)
+		for _, param := range paramsList {
+			switch param {
+			case "thread":
+				postCombined.Thread, err = database.ThreadGetBySlugOrId(
+					env,
+					nil,
+					&postCombined.Post.Thread,
+				)
+			case "user":
+				postCombined.Author, err = database.UserGet(
+					env,
+					postCombined.Post.Author,
+				)
+			case "forum":
+				postCombined.Forum, err = database.ForumGet(
+					env,
+					postCombined.Post.Forum,
+				)
+			}
+			if err != nil {
+				if !processErrorNotFound(w, err) {
+					fmt.Println(err.Error())
+					w.WriteHeader(http.StatusBadRequest)
+				}
+				return
+			}
+		}
+
+		_, _, _ = easyjson.MarshalToHTTPResponseWriter(postCombined, w)
 	}
 }

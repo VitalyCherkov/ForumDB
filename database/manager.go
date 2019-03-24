@@ -47,8 +47,7 @@ func Init(user, password, port, dbName string) (db *sqlx.DB, err error) {
 	)
 
 	db, err = sqlx.Open("postgres", connectionString)
-	//db.SetMaxIdleConns(100)
-	//db.SetMaxOpenConns(100)
+	db.SetMaxOpenConns(50)
 
 	if err != nil {
 		return nil, err

@@ -37,9 +37,9 @@ func easyjsonEcf4a92eDecodeForumDBModels(in *jlexer.Lexer, out *ErrorPostIncorre
 		}
 		switch key {
 		case "CurThreadId":
-			out.CurThreadId = int(in.Int())
+			out.CurThreadId = uint64(in.Uint64())
 		case "ParentThreadId":
-			out.ParentThreadId = int(in.Int())
+			out.ParentThreadId = uint64(in.Uint64())
 		case "message":
 			out.Message = string(in.String())
 		default:
@@ -64,7 +64,7 @@ func easyjsonEcf4a92eEncodeForumDBModels(out *jwriter.Writer, in ErrorPostIncorr
 		} else {
 			out.RawString(prefix)
 		}
-		out.Int(int(in.CurThreadId))
+		out.Uint64(uint64(in.CurThreadId))
 	}
 	{
 		const prefix string = ",\"ParentThreadId\":"
@@ -74,7 +74,7 @@ func easyjsonEcf4a92eEncodeForumDBModels(out *jwriter.Writer, in ErrorPostIncorr
 		} else {
 			out.RawString(prefix)
 		}
-		out.Int(int(in.ParentThreadId))
+		out.Uint64(uint64(in.ParentThreadId))
 	}
 	{
 		const prefix string = ",\"message\":"

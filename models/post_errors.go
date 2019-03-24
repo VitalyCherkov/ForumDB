@@ -4,8 +4,8 @@ import "fmt"
 
 //easyjson:json
 type ErrorPostIncorrectThreadOfParent struct {
-	CurThreadId    int
-	ParentThreadId int
+	CurThreadId    uint64
+	ParentThreadId uint64
 	Message        string `json:"message"`
 }
 

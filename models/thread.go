@@ -13,7 +13,7 @@ type ThreadShort struct {
 
 //easyjson:json
 type ThreadDetail struct {
-	Id    int    `json:"id"`
+	Id    uint64 `json:"id"`
 	Forum string `json:"forum"`
 	Votes int    `json:"votes"`
 	ThreadShort

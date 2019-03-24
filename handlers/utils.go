@@ -20,9 +20,12 @@ func parseSlugOrId(r *http.Request) (slug *string, id *uint64) {
 	}
 }
 
-func processErrorNotFound(w http.ResponseWriter, err error) {
-	w.WriteHeader(http.StatusNotFound)
+func processErrorNotFound(w http.ResponseWriter, err error) (success bool) {
 	if err, ok := err.(*models.ErrorNotFound); ok {
+		w.WriteHeader(http.StatusNotFound)
 		_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+		return true
+	} else {
+		return false
 	}
 }

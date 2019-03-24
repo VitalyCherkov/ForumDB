@@ -1,5 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 
+ALTER DATABASE docker SET timezone TO 'UTC-3';
+
 CREATE TABLE IF NOT EXISTS fuser (
   nickname CITEXT PRIMARY KEY,
   fullname TEXT NOT NULL,
@@ -20,7 +22,7 @@ CREATE TABLE IF NOT EXISTS thread (
   slug CITEXT UNIQUE,
   forum CITEXT REFERENCES forum(slug) NOT NULL,
   author CITEXT REFERENCES fuser(nickname) NOT NULL,
-  created TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  created TIMESTAMPTZ DEFAULT now(),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
   votes INTEGER DEFAULT 0
@@ -46,8 +48,8 @@ CREATE TABLE IF NOT EXISTS post (
   forum TEXT NOT NULL,
   message TEXT NOT NULL,
   parent INTEGER DEFAULT 0,
-  is_edited BOOLEAN DEFAULT false,
-  created TIMESTAMP WITH TIME ZONE DEFAULT now()
+  isEdited BOOLEAN DEFAULT false,
+  created TIMESTAMPTZ DEFAULT now()
 );
 
 

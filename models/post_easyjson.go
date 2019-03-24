@@ -117,9 +117,9 @@ func easyjson5a72dc82DecodeForumDBModels1(in *jlexer.Lexer, out *PostDetail) {
 		case "forum":
 			out.Forum = string(in.String())
 		case "thread":
-			out.Thread = int(in.Int())
+			out.Thread = uint64(in.Uint64())
 		case "isEdited":
-			out.IsEdited = string(in.String())
+			out.IsEdited = bool(in.Bool())
 		default:
 			in.SkipRecursive()
 		}
@@ -202,9 +202,9 @@ func easyjson5a72dc82EncodeForumDBModels1(out *jwriter.Writer, in PostDetail) {
 		} else {
 			out.RawString(prefix)
 		}
-		out.Int(int(in.Thread))
+		out.Uint64(uint64(in.Thread))
 	}
-	if in.IsEdited != "" {
+	if in.IsEdited {
 		const prefix string = ",\"isEdited\":"
 		if first {
 			first = false
@@ -212,7 +212,7 @@ func easyjson5a72dc82EncodeForumDBModels1(out *jwriter.Writer, in PostDetail) {
 		} else {
 			out.RawString(prefix)
 		}
-		out.String(string(in.IsEdited))
+		out.Bool(bool(in.IsEdited))
 	}
 	out.RawByte('}')
 }
@@ -239,4 +239,147 @@ func (v *PostDetail) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *PostDetail) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson5a72dc82DecodeForumDBModels1(l, v)
+}
+func easyjson5a72dc82DecodeForumDBModels2(in *jlexer.Lexer, out *PostCombined) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "post":
+			if in.IsNull() {
+				in.Skip()
+				out.Post = nil
+			} else {
+				if out.Post == nil {
+					out.Post = new(PostDetail)
+				}
+				(*out.Post).UnmarshalEasyJSON(in)
+			}
+		case "author":
+			if in.IsNull() {
+				in.Skip()
+				out.Author = nil
+			} else {
+				if out.Author == nil {
+					out.Author = new(UserDetail)
+				}
+				(*out.Author).UnmarshalEasyJSON(in)
+			}
+		case "thread":
+			if in.IsNull() {
+				in.Skip()
+				out.Thread = nil
+			} else {
+				if out.Thread == nil {
+					out.Thread = new(ThreadDetail)
+				}
+				(*out.Thread).UnmarshalEasyJSON(in)
+			}
+		case "forum":
+			if in.IsNull() {
+				in.Skip()
+				out.Forum = nil
+			} else {
+				if out.Forum == nil {
+					out.Forum = new(ForumDetail)
+				}
+				(*out.Forum).UnmarshalEasyJSON(in)
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson5a72dc82EncodeForumDBModels2(out *jwriter.Writer, in PostCombined) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"post\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.Post == nil {
+			out.RawString("null")
+		} else {
+			(*in.Post).MarshalEasyJSON(out)
+		}
+	}
+	if in.Author != nil {
+		const prefix string = ",\"author\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.Author).MarshalEasyJSON(out)
+	}
+	if in.Thread != nil {
+		const prefix string = ",\"thread\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.Thread).MarshalEasyJSON(out)
+	}
+	if in.Forum != nil {
+		const prefix string = ",\"forum\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		(*in.Forum).MarshalEasyJSON(out)
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v PostCombined) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson5a72dc82EncodeForumDBModels2(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v PostCombined) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson5a72dc82EncodeForumDBModels2(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *PostCombined) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson5a72dc82DecodeForumDBModels2(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *PostCombined) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson5a72dc82DecodeForumDBModels2(l, v)
 }

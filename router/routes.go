@@ -83,6 +83,12 @@ var routes = []Route{
 		"POST",
 		handlers.HandlePostListCreate,
 	},
+	{
+		"PostDetail",
+		"/post/{id}/details",
+		"GET",
+		handlers.HandlePostDetail,
+	},
 
 	{
 		"ServiceStatus",

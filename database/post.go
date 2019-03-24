@@ -12,6 +12,8 @@ const (
 	colsToInsert    = 7
 	lastRowTemplate = "($%d, $%d, $%d, $%d, $%d, $%d, $%d)"
 	rowTemplate     = lastRowTemplate + ","
+
+	queryPostGetDetail = `SELECT * FROM post WHERE post.id = $1`
 )
 
 func PostCreateList(
@@ -86,7 +88,7 @@ func PostCreateList(
 	}
 	defer parentPostStatement.Close()
 	for k := range parentPostsMap {
-		parentThreadId := int(0)
+		parentThreadId := uint64(0)
 		err = parentPostStatement.QueryRow(k).Scan(&parentThreadId)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -126,6 +128,11 @@ func PostCreateList(
 	// Составление запроса для вставки новых записей
 	query := strings.Builder{}
 	now := time.Time{}
+	err = env.DB.QueryRow(`SELECT * FROM now()`).Scan(&now)
+	if err != nil {
+		return nil, err
+	}
+
 	query.WriteString("INSERT INTO post (id, author, thread, forum, message, parent, created) VALUES ")
 	args := make([]interface{}, 0, colsToInsert*postCount)
 
@@ -182,4 +189,20 @@ func PostCreateList(
 	}
 
 	return posts, nil
+}
+
+func PostGetDetail(env *models.Env, id uint64) (post *models.PostDetail, err error) {
+	post = &models.PostDetail{}
+	err = env.DB.Get(post, queryPostGetDetail, &id)
+	if err == nil {
+		return post, nil
+	}
+	if err == sql.ErrNoRows {
+		return nil, &models.ErrorNotFound{
+			Message: fmt.Sprintf("post detail: can not find post by id=%d", id),
+		}
+	}
+	return nil, &models.DatabaseError{
+		Message: "post detail: " + err.Error(),
+	}
 }

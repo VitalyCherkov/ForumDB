@@ -37,18 +37,18 @@ func UserCreate(env *models.Env, nickname string, short *models.UserShort) (err 
 	}
 
 	if err == sql.ErrNoRows || len(*foundUsers) == 0 {
-		_, err = env.DB.Query(queryInsertUser,
+		q, err := env.DB.Query(queryInsertUser,
 			nickname,
 			short.Email,
 			short.FullName,
 			short.About,
 		)
-
 		if err != nil {
 			return &models.DatabaseError{
 				Message: err.Error(),
 			}
 		}
+		_ = q.Close()
 		return nil
 	}
 

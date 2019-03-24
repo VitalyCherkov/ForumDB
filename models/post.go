@@ -11,9 +11,17 @@ type PostDetail struct {
 	Id       uint64    `json:"id,omitempty"`
 	Created  time.Time `json:"created,omitempty"`
 	Forum    string    `json:"forum,omitempty"`
-	Thread   int       `json:"thread,omitempty"`
-	IsEdited string    `json:"isEdited,omitempty"`
+	Thread   uint64    `json:"thread,omitempty"`
+	IsEdited bool      `json:"isEdited,omitempty"`
 }
 
 //easyjson:json
 type PostDetailList []PostDetail
+
+//easyjson:json
+type PostCombined struct {
+	Post   *PostDetail   `json:"post"`
+	Author *UserDetail   `json:"author,omitempty"`
+	Thread *ThreadDetail `json:"thread,omitempty"`
+	Forum  *ForumDetail  `json:"forum,omitempty"`
+}

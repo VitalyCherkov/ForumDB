@@ -35,7 +35,7 @@ func HandleForumCreate(env *models.Env) http.HandlerFunc {
 		case *models.ErrorNotFound:
 			processErrorNotFound(w, err)
 		default:
-			//fmt.Println(err.Error())
+			fmt.Println("forum create bad request: " + err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	}
@@ -56,7 +56,7 @@ func HandleForumGet(env *models.Env) http.HandlerFunc {
 		case *models.ErrorNotFound:
 			processErrorNotFound(w, err)
 		default:
-			fmt.Println(err.Error())
+			fmt.Println("Forum bad request: " + err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	}

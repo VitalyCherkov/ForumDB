@@ -328,7 +328,7 @@ func easyjson2d00218DecodeForumDBModels3(in *jlexer.Lexer, out *ThreadDetail) {
 		}
 		switch key {
 		case "id":
-			out.Id = int(in.Int())
+			out.Id = uint64(in.Uint64())
 		case "forum":
 			out.Forum = string(in.String())
 		case "votes":
@@ -383,7 +383,7 @@ func easyjson2d00218EncodeForumDBModels3(out *jwriter.Writer, in ThreadDetail) {
 		} else {
 			out.RawString(prefix)
 		}
-		out.Int(int(in.Id))
+		out.Uint64(uint64(in.Id))
 	}
 	{
 		const prefix string = ",\"forum\":"

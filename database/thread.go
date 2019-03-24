@@ -182,13 +182,12 @@ func ThreadVote(
 		return nil, err
 	}
 
-	_, err = env.DB.Query(
+	q, err := env.DB.Query(
 		queryThreadInsertVote,
 		thread.Id,
 		vote.Nickname,
 		vote.Voice,
 	)
-
 	if err != nil {
 		if err == sql.ErrNoRows || err.(*pq.Error).Code == notNullViolationCode {
 			return nil, &models.ErrorNotFound{
@@ -205,6 +204,7 @@ func ThreadVote(
 			}
 		}
 	}
+	_ = q.Close()
 
 	thread, err = ThreadGetBySlugOrId(env, slug, id)
 	if err != nil {
