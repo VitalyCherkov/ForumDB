@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS forum (
 
 CREATE TABLE IF NOT EXISTS thread (
   id SERIAL PRIMARY KEY,
-  slug CITEXT UNIQUE NOT NULL,
+  slug CITEXT UNIQUE,
   forum CITEXT REFERENCES forum(slug) NOT NULL,
   author CITEXT REFERENCES fuser(nickname) NOT NULL,
   created TIMESTAMP WITH TIME ZONE DEFAULT now(),
@@ -49,3 +49,19 @@ CREATE TABLE IF NOT EXISTS post (
   is_edited BOOLEAN DEFAULT false,
   created TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
+
+CREATE OR REPLACE FUNCTION forum_inc_thread_count()
+RETURNS TRIGGER AS $forum_inc_thread_count$
+
+  BEGIN
+    UPDATE forum SET threads = threads + 1 WHERE forum.slug = NEW.forum;
+    RETURN NEW;
+  END;
+
+$forum_inc_thread_count$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS forum_inc_thread_count ON thread;
+CREATE TRIGGER forum_inc_thread_count AFTER INSERT
+  ON thread
+  FOR ROW
+  EXECUTE PROCEDURE forum_inc_thread_count();

@@ -78,6 +78,7 @@ func HandleUserUpdate(env *models.Env) http.HandlerFunc {
 		err := unmarshalBody(r, user)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 		updatedUser, err := database.UserUpdate(env, nickname, user)
 		if err == nil {

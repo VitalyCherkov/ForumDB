@@ -3,6 +3,7 @@ package handlers
 import (
 	"ForumDB/database"
 	"ForumDB/models"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -59,7 +60,7 @@ func HandleForumGet(env *models.Env) http.HandlerFunc {
 			w.WriteHeader(http.StatusNotFound)
 			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
 		default:
-			//fmt.Println(err.Error())
+			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	}

@@ -82,14 +82,14 @@ func userBuildUpdateQuery(nickname string, user *models.UserDetail) (string, []i
 	q.WriteString("UPDATE fuser SET")
 	args := make([]interface{}, 0, 5)
 
-	buildItem := func(fieldValue, filedName string) {
+	buildItem := func(fieldValue, fieldName string) {
 		if fieldValue != "" {
 			args = append(args, fieldValue)
 			count := len(args)
 			if count > 1 {
 				q.WriteString(",")
 			}
-			q.WriteString(" " + filedName + " = $" + strconv.Itoa(count))
+			q.WriteString(" " + fieldName + " = $" + strconv.Itoa(count))
 		}
 	}
 

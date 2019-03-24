@@ -45,4 +45,30 @@ var routes = []Route{
 		"GET",
 		handlers.HandleForumGet,
 	},
+
+	{
+		"ThreadCreate",
+		"/forum/{slug}/create",
+		"POST",
+		handlers.HandleThreadCreate,
+	},
+	{
+		"ThreadList",
+		"/forum/{slug}/threads",
+		"GET",
+		handlers.HandleThreadList,
+	},
+	{
+		"ThreadCreate",
+		"/thread/{slug_or_id}/details",
+		"GET",
+		handlers.HandleThreadDetails,
+	},
+
+	{
+		"PostListCreate",
+		"/thread/{slug_or_id}/create",
+		"POST",
+		handlers.HandlePostListCreate,
+	},
 }

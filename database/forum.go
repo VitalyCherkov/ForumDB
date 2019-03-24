@@ -18,6 +18,8 @@ const (
 		VALUES ($1, (SELECT nickname FROM fuser WHERE nickname = $2), $3)
 		RETURNING *
 	`
+
+	queryForumCheckBySlug = `SELECT slug FROM forum WHERE slug = $1`
 )
 
 func ForumGet(env *models.Env, slug string) (forum *models.ForumDetail, err error) {
@@ -71,5 +73,22 @@ func ForumCreate(env *models.Env, short *models.ForumSort) (forum *models.ForumD
 
 	return nil, &models.DatabaseError{
 		Message: fmt.Sprintf(`Forum error: can not create new forum: %s`, err.Error()),
+	}
+}
+
+func doesForumExist(env *models.Env, slug string) (err error) {
+	foundSlug := ""
+	err = env.DB.Get(&foundSlug, queryForumCheckBySlug, slug)
+	if err == nil {
+		return nil
+	}
+	if err == sql.ErrNoRows {
+		return &models.ErrorNotFound{
+			Message: fmt.Sprintf(`Forum error: can not find with slug %s`, slug),
+		}
+	} else {
+		return &models.DatabaseError{
+			Message: fmt.Sprintf(`Forum error: %s`, err.Error()),
+		}
 	}
 }
