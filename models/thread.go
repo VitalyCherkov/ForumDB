@@ -21,3 +21,9 @@ type ThreadDetail struct {
 
 //easyjson:json
 type ThreadDetailList []ThreadDetail
+
+//easyjson:json
+type ThreadVote struct {
+	Nickname string `json:"nickname"`
+	Voice    int    `json:"voice"`
+}

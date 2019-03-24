@@ -4,6 +4,7 @@ import (
 	"ForumDB/models"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,6 +28,12 @@ const (
 	queryThreadGetBySlug = `SELECT * FROM thread WHERE thread.slug = $1`
 
 	queryThreadGetById = `SELECT * FROM thread WHERE thread.id = $1`
+
+	queryThreadInsertVote = `
+		INSERT INTO vote (id, nickname, voice)
+		VALUES ($1, (SELECT nickname FROM fuser WHERE fuser.nickname = $2), $3)
+		ON CONFLICT ON CONSTRAINT vote_pkey DO UPDATE SET voice = $3
+	`
 )
 
 func ThreadGetBySlugOrId(env *models.Env, slug *string, id *uint64) (thread *models.ThreadDetail, err error) {
@@ -160,6 +167,113 @@ func ThreadGetList(
 	} else {
 		return nil, &models.DatabaseError{
 			Message: fmt.Sprintf(`threads list error: %s`, err.Error()),
+		}
+	}
+}
+
+func ThreadVote(
+	env *models.Env,
+	slug *string,
+	id *uint64,
+	vote *models.ThreadVote,
+) (thread *models.ThreadDetail, err error) {
+	thread, err = ThreadGetBySlugOrId(env, slug, id)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = env.DB.Query(
+		queryThreadInsertVote,
+		thread.Id,
+		vote.Nickname,
+		vote.Voice,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows || err.(*pq.Error).Code == notNullViolationCode {
+			return nil, &models.ErrorNotFound{
+				Message: fmt.Sprintf(
+					"vote for thread %d by user %s: %s",
+					thread.Id,
+					vote.Nickname,
+					err.Error(),
+				),
+			}
+		} else {
+			return nil, &models.DatabaseError{
+				Message: fmt.Sprintf("vote for thread %d: %s", thread.Id, err.Error()),
+			}
+		}
+	}
+
+	thread, err = ThreadGetBySlugOrId(env, slug, id)
+	if err != nil {
+		return nil, err
+	}
+	return thread, nil
+}
+
+func ThreadUpdate(
+	env *models.Env,
+	slug *string,
+	id *uint64,
+	title, message string,
+) (thread *models.ThreadDetail, err error) {
+	if id == nil && slug == nil {
+		return nil, &models.ErrorNotFound{
+			Message: "thread update: slug of id must be not empty",
+		}
+	}
+
+	if title == "" && message == "" {
+		return ThreadGetBySlugOrId(env, slug, id)
+	}
+
+	query := strings.Builder{}
+	query.WriteString("UPDATE thread SET")
+	args := make([]interface{}, 0, 3)
+	if title != "" {
+		query.WriteString(" title = $1")
+		args = append(args, title)
+	}
+	if message != "" {
+		if title != "" {
+			query.WriteString(", message = $2")
+		} else {
+			query.WriteString(" message = $1")
+		}
+		args = append(args, message)
+	}
+	if id != nil {
+		query.WriteString(" WHERE id = $" + strconv.Itoa(len(args)+1))
+		args = append(args, *id)
+	} else {
+		query.WriteString(" WHERE slug = $" + strconv.Itoa(len(args)+1))
+		args = append(args, *slug)
+	}
+
+	query.WriteString(" RETURNING *")
+
+	thread = &models.ThreadDetail{}
+	err = env.DB.Get(thread, query.String(), args...)
+	if err == nil {
+		return thread, nil
+	}
+	if err == sql.ErrNoRows {
+		return nil, &models.ErrorNotFound{
+			Message: fmt.Sprintf(
+				`thread update: can not find thread: slug="%v" id="%v"`,
+				slug,
+				id,
+			),
+		}
+	} else {
+		return nil, &models.DatabaseError{
+			Message: fmt.Sprintf(
+				`thread update: slug="%v" id="%v"`,
+				slug,
+				id,
+			),
 		}
 	}
 }

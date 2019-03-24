@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"net/http"
 )
 
 type DatabaseError struct {
@@ -15,6 +16,18 @@ func (err *DatabaseError) Error() string {
 //easyjson:json
 type ErrorNotFound struct {
 	Message string `json:"message"`
+}
+
+func (err *ErrorNotFound) Header() http.Header {
+	panic("implement me")
+}
+
+func (err *ErrorNotFound) Write([]byte) (int, error) {
+	panic("implement me")
+}
+
+func (err *ErrorNotFound) WriteHeader(statusCode int) {
+	panic("implement me")
 }
 
 func (err *ErrorNotFound) Error() string {

@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mailru/easyjson"
 )
 
 func HandlePostListCreate(env *models.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slug, treadId := parseSlugOrId(mux.Vars(r)["slug_or_id"])
+		slug, treadId := parseSlugOrId(r)
 
 		posts := &models.PostDetailList{}
 		err := unmarshalBody(r, posts)
@@ -30,9 +29,7 @@ func HandlePostListCreate(env *models.Env) http.HandlerFunc {
 
 		switch err.(type) {
 		case *models.ErrorNotFound:
-			err := err.(*models.ErrorNotFound)
-			w.WriteHeader(http.StatusNotFound)
-			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+			processErrorNotFound(w, err)
 		case *models.ErrorPostIncorrectThreadOfParent:
 			w.WriteHeader(http.StatusConflict)
 			err := err.(*models.ErrorPostIncorrectThreadOfParent)

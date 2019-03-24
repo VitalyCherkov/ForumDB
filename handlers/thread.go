@@ -37,9 +37,7 @@ func HandleThreadCreate(env *models.Env) http.HandlerFunc {
 			err := err.(*models.ErrorThreadAlreadyExists)
 			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err.Thread, w)
 		case *models.ErrorNotFound:
-			w.WriteHeader(http.StatusNotFound)
-			err := err.(*models.ErrorNotFound)
-			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+			processErrorNotFound(w, err)
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 		}
@@ -82,9 +80,7 @@ func HandleThreadList(env *models.Env) http.HandlerFunc {
 		}
 		switch err.(type) {
 		case *models.ErrorNotFound:
-			w.WriteHeader(http.StatusNotFound)
-			err := err.(*models.ErrorNotFound)
-			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+			processErrorNotFound(w, err)
 		default:
 			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusBadRequest)
@@ -94,7 +90,7 @@ func HandleThreadList(env *models.Env) http.HandlerFunc {
 
 func HandleThreadDetails(env *models.Env) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slug, id := parseSlugOrId(mux.Vars(r)["slug_or_id"])
+		slug, id := parseSlugOrId(r)
 		thread, threadDBErr := database.ThreadGetBySlugOrId(env, slug, id)
 
 		if threadDBErr == nil {
@@ -104,12 +100,67 @@ func HandleThreadDetails(env *models.Env) http.HandlerFunc {
 		}
 		switch threadDBErr.(type) {
 		case *models.ErrorNotFound:
-			err := threadDBErr.(*models.ErrorNotFound)
-			w.WriteHeader(http.StatusNotFound)
-			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+			processErrorNotFound(w, threadDBErr)
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Println(`Bad request to thread details: %s`, threadDBErr.Error())
+		}
+	}
+}
+
+func HandleThreadDoVote(env *models.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slug, id := parseSlugOrId(r)
+
+		vote := &models.ThreadVote{}
+		err := unmarshalBody(r, vote)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		thread, err := database.ThreadVote(env, slug, id, vote)
+		if err == nil {
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(thread, w)
+			return
+		}
+
+		switch err.(type) {
+		case *models.ErrorNotFound:
+			processErrorNotFound(w, err)
+		default:
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Println(err.Error())
+		}
+	}
+}
+
+func HandleThreadUpdate(env *models.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slug, id := parseSlugOrId(r)
+		short := &models.ThreadShort{}
+		err := unmarshalBody(r, short)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		thread, err := database.ThreadUpdate(
+			env,
+			slug,
+			id,
+			short.Title,
+			short.Message,
+		)
+		if err == nil {
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(thread, w)
+			return
+		}
+		switch err.(type) {
+		case *models.ErrorNotFound:
+			processErrorNotFound(w, err)
+		default:
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
 		}
 	}
 }

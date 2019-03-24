@@ -64,6 +64,18 @@ var routes = []Route{
 		"GET",
 		handlers.HandleThreadDetails,
 	},
+	{
+		"ThreadDetails",
+		"/thread/{slug_or_id}/details",
+		"POST",
+		handlers.HandleThreadUpdate,
+	},
+	{
+		"ThreadDoVote",
+		"/thread/{slug_or_id}/vote",
+		"POST",
+		handlers.HandleThreadDoVote,
+	},
 
 	{
 		"PostListCreate",

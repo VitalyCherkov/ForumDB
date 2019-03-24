@@ -28,9 +28,9 @@ CREATE TABLE IF NOT EXISTS thread (
 
 CREATE TABLE IF NOT EXISTS vote (
   id INTEGER REFERENCES thread(id) NOT NULL,
-  fuser CITEXT REFERENCES fuser(nickname) NOT NULL,
-  value INTEGER NOT NULL,
-  PRIMARY KEY(id, fuser)
+  nickname CITEXT REFERENCES fuser(nickname) NOT NULL,
+  voice INTEGER NOT NULL,
+  PRIMARY KEY(id, nickname)
 );
 
 CREATE TABLE IF NOT EXISTS forum_fuser (
@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS post (
   created TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
+
+-- Обновление количества веток в форуме
 CREATE OR REPLACE FUNCTION forum_inc_thread_count()
 RETURNS TRIGGER AS $forum_inc_thread_count$
 
@@ -65,3 +67,33 @@ CREATE TRIGGER forum_inc_thread_count AFTER INSERT
   ON thread
   FOR ROW
   EXECUTE PROCEDURE forum_inc_thread_count();
+
+
+-- Обновление голосов ветки
+CREATE OR REPLACE FUNCTION vote_recount_thread()
+RETURNS TRIGGER AS $vote_recount_thread$
+
+  BEGIN
+    IF (TG_OP = 'UPDATE' AND NEW.voice <> OLD.voice) THEN
+      UPDATE thread
+        SET votes = votes - OLD.voice + NEW.voice
+        WHERE thread.id = NEW.id;
+      RETURN NEW;
+
+    ELSEIF (TG_OP = 'INSERT') THEN
+      UPDATE thread
+        SET votes = votes + NEW.voice
+        WHERE thread.id = NEW.id;
+      RETURN NEW;
+    END IF;
+
+    RETURN NULL;
+  END ;
+
+$vote_recount_thread$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS vote_recount_thread ON vote;
+CREATE TRIGGER vote_recount_thread AFTER INSERT OR UPDATE
+  ON vote
+  FOR ROW
+  EXECUTE PROCEDURE vote_recount_thread();

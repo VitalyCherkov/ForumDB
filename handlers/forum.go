@@ -33,9 +33,7 @@ func HandleForumCreate(env *models.Env) http.HandlerFunc {
 			w.WriteHeader(http.StatusConflict)
 			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err.Forum, w)
 		case *models.ErrorNotFound:
-			w.WriteHeader(http.StatusNotFound)
-			err := err.(*models.ErrorNotFound)
-			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+			processErrorNotFound(w, err)
 		default:
 			//fmt.Println(err.Error())
 			w.WriteHeader(http.StatusBadRequest)
@@ -56,9 +54,7 @@ func HandleForumGet(env *models.Env) http.HandlerFunc {
 		}
 		switch err.(type) {
 		case *models.ErrorNotFound:
-			err := err.(*models.ErrorNotFound)
-			w.WriteHeader(http.StatusNotFound)
-			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+			processErrorNotFound(w, err)
 		default:
 			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusBadRequest)

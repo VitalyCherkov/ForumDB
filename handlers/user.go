@@ -60,9 +60,7 @@ func HandleUserGet(env *models.Env) http.HandlerFunc {
 		}
 		switch err.(type) {
 		case *models.ErrorNotFound:
-			err := err.(*models.ErrorNotFound)
-			w.WriteHeader(http.StatusNotFound)
-			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+			processErrorNotFound(w, err)
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 		}
@@ -92,9 +90,7 @@ func HandleUserUpdate(env *models.Env) http.HandlerFunc {
 			err := err.(*models.ErrorConflict)
 			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
 		case *models.ErrorNotFound:
-			w.WriteHeader(http.StatusNotFound)
-			err := err.(*models.ErrorNotFound)
-			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
+			processErrorNotFound(w, err)
 		default:
 			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusBadRequest)
