@@ -99,3 +99,23 @@ CREATE TRIGGER vote_recount_thread AFTER INSERT OR UPDATE
   ON vote
   FOR ROW
   EXECUTE PROCEDURE vote_recount_thread();
+
+
+-- Отметка о редактировании поста
+CREATE OR REPLACE FUNCTION post_set_edited()
+RETURNS TRIGGER AS $post_set_edited$
+
+  BEGIN
+    IF OLD.message <> NEW.message THEN
+      NEW.isEdited = TRUE;
+    END IF;
+    RETURN NEW;
+  END;
+
+$post_set_edited$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS post_set_edited ON post;
+CREATE TRIGGER post_set_edited BEFORE UPDATE
+  ON post
+  FOR ROW
+  EXECUTE PROCEDURE post_set_edited();

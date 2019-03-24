@@ -14,6 +14,8 @@ const (
 	rowTemplate     = lastRowTemplate + ","
 
 	queryPostGetDetail = `SELECT * FROM post WHERE post.id = $1`
+
+	queryPostUpdate = `UPDATE post SET message = $1 WHERE post.id = $2 RETURNING *`
 )
 
 func PostCreateList(
@@ -204,5 +206,24 @@ func PostGetDetail(env *models.Env, id uint64) (post *models.PostDetail, err err
 	}
 	return nil, &models.DatabaseError{
 		Message: "post detail: " + err.Error(),
+	}
+}
+
+func PostUpdate(env *models.Env, id uint64, short *models.PostDetail) (post *models.PostDetail, err error) {
+	if short.Message == "" {
+		return PostGetDetail(env, id)
+	}
+	post = &models.PostDetail{}
+	err = env.DB.Get(post, queryPostUpdate, short.Message, id)
+	if err == nil {
+		return post, nil
+	}
+	if err == sql.ErrNoRows {
+		return nil, &models.ErrorNotFound{
+			Message: fmt.Sprintf(`post update: can not find post with id="%d"`, id),
+		}
+	}
+	return nil, &models.DatabaseError{
+		Message: "post update: " + err.Error(),
 	}
 }

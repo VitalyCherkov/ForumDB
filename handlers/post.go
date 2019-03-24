@@ -101,3 +101,33 @@ func HandlePostDetail(env *models.Env) http.HandlerFunc {
 		_, _, _ = easyjson.MarshalToHTTPResponseWriter(postCombined, w)
 	}
 }
+
+func HandlePostUpdate(env *models.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, err := strconv.ParseUint(vars["id"], 10, 64)
+		if err != nil {
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		post := &models.PostDetail{}
+		err = unmarshalBody(r, post)
+		if err != nil {
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		post, err = database.PostUpdate(env, id, post)
+		if err == nil {
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(post, w)
+			return
+		}
+		if !processErrorNotFound(w, err) {
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	}
+}

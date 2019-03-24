@@ -89,6 +89,12 @@ var routes = []Route{
 		"GET",
 		handlers.HandlePostDetail,
 	},
+	{
+		"PostDetail",
+		"/post/{id}/details",
+		"POST",
+		handlers.HandlePostUpdate,
+	},
 
 	{
 		"ServiceStatus",
