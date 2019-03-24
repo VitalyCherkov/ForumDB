@@ -83,4 +83,17 @@ var routes = []Route{
 		"POST",
 		handlers.HandlePostListCreate,
 	},
+
+	{
+		"ServiceStatus",
+		"/service/status",
+		"GET",
+		handlers.HandleServiceStatus,
+	},
+	{
+		"ServiceClear",
+		"/service/clear",
+		"POST",
+		handlers.HandleServiceClear,
+	},
 }
