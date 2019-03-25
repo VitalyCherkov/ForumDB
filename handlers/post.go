@@ -32,16 +32,16 @@ func HandlePostListCreate(env *models.Env) http.HandlerFunc {
 		}
 
 		switch err.(type) {
-		case *models.ErrorNotFound:
-			processErrorNotFound(w, err)
 		case *models.ErrorPostIncorrectThreadOfParent:
 			w.WriteHeader(http.StatusConflict)
 			err := err.(*models.ErrorPostIncorrectThreadOfParent)
 			err.Message = err.Error()
 			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err, w)
 		default:
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Println(err.Error())
+			if !processErrorNotFound(w, err) {
+				fmt.Println(err.Error())
+				w.WriteHeader(http.StatusBadRequest)
+			}
 		}
 	}
 }

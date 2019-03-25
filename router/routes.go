@@ -45,6 +45,12 @@ var routes = []Route{
 		"GET",
 		handlers.HandleForumGet,
 	},
+	{
+		"ForumUsers",
+		"/forum/{slug}/users",
+		"GET",
+		handlers.HandleForumUsers,
+	},
 
 	{
 		"ThreadCreate",

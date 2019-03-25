@@ -1,6 +1,9 @@
 DROP TRIGGER IF EXISTS forum_inc_thread_count ON thread;
 DROP FUNCTION IF EXISTS forum_inc_thread_count();
 
+DROP TRIGGER IF EXISTS forum_user_insert ON thread;
+DROP FUNCTION IF EXISTS forum_user_insert();
+
 DROP TRIGGER IF EXISTS vote_recount_thread ON vote;
 DROP FUNCTION IF EXISTS vote_recount_thread();
 

@@ -5,6 +5,7 @@ import (
 	"ForumDB/models"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -32,11 +33,11 @@ func HandleForumCreate(env *models.Env) http.HandlerFunc {
 			err := err.(*models.ErrorForumAlreadyExists)
 			w.WriteHeader(http.StatusConflict)
 			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err.Forum, w)
-		case *models.ErrorNotFound:
-			processErrorNotFound(w, err)
 		default:
-			fmt.Println("forum create bad request: " + err.Error())
-			w.WriteHeader(http.StatusBadRequest)
+			if !processErrorNotFound(w, err) {
+				fmt.Println(err.Error())
+				w.WriteHeader(http.StatusBadRequest)
+			}
 		}
 	}
 }
@@ -52,11 +53,41 @@ func HandleForumGet(env *models.Env) http.HandlerFunc {
 			_, _, _ = easyjson.MarshalToHTTPResponseWriter(forum, w)
 			return
 		}
-		switch err.(type) {
-		case *models.ErrorNotFound:
-			processErrorNotFound(w, err)
-		default:
-			fmt.Println("Forum bad request: " + err.Error())
+		if !processErrorNotFound(w, err) {
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	}
+}
+
+func HandleForumUsers(env *models.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		slug := vars["slug"]
+
+		limitParam := r.URL.Query().Get("limit")
+		var limit uint64
+		if limitParam != "" {
+			var err error
+			limit, err = strconv.ParseUint(limitParam, 10, 64)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+		}
+
+		since := r.URL.Query().Get("since")
+
+		desc := r.URL.Query().Get("desc") == "true"
+
+		users, err := database.ForumGetUsers(env, slug, since, limit, desc)
+
+		if err == nil {
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(users, w)
+			return
+		}
+		if !processErrorNotFound(w, err) {
+			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	}

@@ -41,6 +41,7 @@ func HandleUserCreate(env *models.Env) http.HandlerFunc {
 			_, _, _ = easyjson.MarshalToHTTPResponseWriter(err.Users, w)
 			return
 		case *models.DatabaseError:
+			fmt.Println("User create: " + err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}

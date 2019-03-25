@@ -92,3 +92,66 @@ func doesForumExist(env *models.Env, slug string) (err error) {
 		}
 	}
 }
+
+func ForumGetUsers(
+	env *models.Env,
+	slug, since string,
+	limit uint64,
+	desc bool,
+) (users *models.UserDetailList, err error) {
+
+	err = doesForumExist(env, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	args := make([]interface{}, 0, 3)
+	args = append(args, slug)
+
+	var nicknameCmpPart string
+	if since != "" {
+		if desc {
+			nicknameCmpPart = "AND F.nickname < $2"
+		} else {
+			nicknameCmpPart = "AND F.nickname > $2"
+		}
+		args = append(args, since)
+	}
+	var limitPart string
+	if limit != 0 {
+		if since != "" {
+			limitPart = " LIMIT $3"
+		} else {
+			limitPart = " LIMIT $2"
+		}
+		args = append(args, limit)
+	}
+	var descPart string
+	if desc {
+		descPart = " DESC"
+	} else {
+		descPart = " ASC"
+	}
+
+	query := fmt.Sprintf(`
+		SELECT F.nickname as nickname, fullname, email, about FROM
+			forum_fuser F
+			JOIN fuser ON F.nickname = fuser.nickname 
+			WHERE slug = $1 %s
+			ORDER BY F.nickname %s %s
+	`, nicknameCmpPart, descPart, limitPart)
+
+	users = &models.UserDetailList{}
+	err = env.DB.Select(users, query, args...)
+	if err == nil {
+		return users, nil
+	}
+	if err.(*pq.Error).Code == notNullViolationCode {
+		return nil, &models.ErrorNotFound{
+			Message: `can not get forum users by slug: ` + slug,
+		}
+	}
+	return nil, &models.DatabaseError{
+		Message: `can not get forum users: ` + err.Error(),
+	}
+}

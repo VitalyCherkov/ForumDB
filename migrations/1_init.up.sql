@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS citext;
 ALTER DATABASE docker SET timezone TO 'UTC-3';
 
 CREATE TABLE IF NOT EXISTS fuser (
-  nickname CITEXT PRIMARY KEY,
+  nickname CITEXT COLLATE ucs_basic PRIMARY KEY,
   fullname TEXT NOT NULL,
   email CITEXT UNIQUE NOT NULL,
   about TEXT
@@ -36,9 +36,9 @@ CREATE TABLE IF NOT EXISTS vote (
 );
 
 CREATE TABLE IF NOT EXISTS forum_fuser (
-  forum CITEXT REFERENCES forum(slug) NOT NULL,
-  fuser CITEXT REFERENCES fuser(nickname) NOT NULL,
-  PRIMARY KEY(forum, fuser)
+  slug CITEXT REFERENCES forum(slug) NOT NULL,
+  nickname CITEXT COLLATE ucs_basic REFERENCES fuser(nickname) NOT NULL,
+  PRIMARY KEY(slug, nickname)
 );
 
 CREATE TABLE IF NOT EXISTS post (
@@ -69,6 +69,30 @@ CREATE TRIGGER forum_inc_thread_count AFTER INSERT
   ON thread
   FOR ROW
   EXECUTE PROCEDURE forum_inc_thread_count();
+
+
+-- Добавление юзера в таблицу forum_fuser на добавление ветки
+CREATE OR REPLACE FUNCTION forum_user_insert()
+  RETURNS TRIGGER AS $forum_user_insert$
+
+  BEGIN
+    INSERT INTO forum_fuser (slug, nickname)
+      VALUES (
+        NEW.forum,
+        NEW.author
+      )
+      ON CONFLICT DO NOTHING;
+    RETURN NEW;
+  END;
+
+$forum_user_insert$ LANGUAGE plpgsql;
+
+
+DROP TRIGGER IF EXISTS forum_user_insert ON thread;
+CREATE TRIGGER forum_user_insert AFTER INSERT
+  ON thread
+  FOR ROW
+EXECUTE PROCEDURE forum_user_insert();
 
 
 -- Обновление голосов ветки

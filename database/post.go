@@ -4,6 +4,7 @@ import (
 	"ForumDB/models"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -180,6 +181,29 @@ func PostCreateList(
 	if err != nil {
 		return nil, &models.DatabaseError{
 			Message: "can not update post count in forum: " + err.Error(),
+		}
+	}
+
+	// Добавление пользователей форума в таблицу forum_fuser
+	query = strings.Builder{}
+	userCount := len(usersMap)
+	args = make([]interface{}, 0, userCount+1)
+	args = append(args, targetThread.Forum)
+	query.WriteString("INSERT INTO forum_fuser(slug, nickname) VALUES")
+	userCurIndex := 1
+	for _, nickname := range usersMap {
+		if userCurIndex != userCount {
+			query.WriteString(" ($1, $" + strconv.Itoa(userCurIndex+1) + "),")
+		} else {
+			query.WriteString(" ($1, $" + strconv.Itoa(userCurIndex+1) + ")")
+		}
+		args = append(args, nickname)
+	}
+	query.WriteString(` ON CONFLICT DO NOTHING`)
+	_, err = transaction.Exec(query.String(), args...)
+	if err != nil {
+		return nil, &models.DatabaseError{
+			Message: "can not insert users into forum_fuser: " + err.Error(),
 		}
 	}
 
