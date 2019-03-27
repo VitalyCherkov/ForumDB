@@ -14,7 +14,6 @@ import (
 func makeMigrations(db *sqlx.DB, databaseName string) error {
 	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
 	if err != nil {
-		fmt.Printf("%v\n", err)
 		return err
 	}
 	fmt.Printf("created driver instance\n")

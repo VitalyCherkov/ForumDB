@@ -52,10 +52,8 @@ func ForumCreate(env *models.Env, short *models.ForumSort) (forum *models.ForumD
 	}
 	pqCode := err.(*pq.Error).Code
 	if pqCode == uniqueViolationCode {
-		fmt.Printf("Forum create conflict %v %v\n", pqCode, uniqueViolationCode)
 		forum, err := ForumGet(env, short.Slug)
 		if err != nil {
-			fmt.Printf("Forum get error, %v", err.Error())
 			return nil, err
 		}
 		return nil, &models.ErrorForumAlreadyExists{

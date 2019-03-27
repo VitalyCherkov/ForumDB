@@ -87,14 +87,11 @@ func ThreadCreate(
 	if err == nil {
 		return thread, nil
 	}
-	fmt.Printf("Thread create error: %s\n", err.Error())
 
 	pqCode := err.(*pq.Error).Code
 	if pqCode == uniqueViolationCode {
-		fmt.Printf("Thread create conflict %v %v\n", pqCode, uniqueViolationCode)
 		thread, err := ThreadGetBySlugOrId(env, short.Slug, nil)
 		if err != nil {
-			fmt.Printf(err.Error())
 			return nil, err
 		}
 		return nil, &models.ErrorThreadAlreadyExists{

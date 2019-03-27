@@ -141,7 +141,7 @@ func PostCreateList(
 	// Составление запроса для вставки новых записей
 	query := strings.Builder{}
 	now := time.Time{}
-	err = env.DB.QueryRow(`SELECT * FROM now()`).Scan(&now)
+	err = transaction.QueryRow(`SELECT * FROM now()`).Scan(&now)
 	if err != nil {
 		return nil, err
 	}
