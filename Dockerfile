@@ -4,6 +4,7 @@ FROM golang:alpine as builder
 
 WORKDIR /src
 
+COPY ./vendor ./vendor
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
