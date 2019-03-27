@@ -29,3 +29,12 @@ func processErrorNotFound(w http.ResponseWriter, err error) (success bool) {
 		return false
 	}
 }
+
+// default 0
+func parseUint64FromQuery(r *http.Request, name string) (res uint64, err error) {
+	param := r.URL.Query().Get(name)
+	if param == "" {
+		return 0, nil
+	}
+	return strconv.ParseUint(param, 10, 64)
+}

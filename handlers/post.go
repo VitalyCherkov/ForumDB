@@ -131,3 +131,31 @@ func HandlePostUpdate(env *models.Env) http.HandlerFunc {
 		}
 	}
 }
+
+func HandlePostListGet(env *models.Env) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slug, id := parseSlugOrId(r)
+
+		sortType := r.URL.Query().Get("sort")
+		limit, err := parseUint64FromQuery(r, "limit")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		since, err := parseUint64FromQuery(r, "since")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		desc := r.URL.Query().Get("desc") == "true"
+
+		posts, err := database.PostListGet(env, slug, id, sortType, since, limit, desc)
+		if err == nil {
+			_, _, _ = easyjson.MarshalToHTTPResponseWriter(posts, w)
+			return
+		}
+		if !processErrorNotFound(w, err) {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	}
+}

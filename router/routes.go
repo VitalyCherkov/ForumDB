@@ -90,13 +90,19 @@ var routes = []Route{
 		handlers.HandlePostListCreate,
 	},
 	{
+		"PostListGet",
+		"/thread/{slug_or_id}/posts",
+		"GET",
+		handlers.HandlePostListGet,
+	},
+	{
 		"PostDetail",
 		"/post/{id}/details",
 		"GET",
 		handlers.HandlePostDetail,
 	},
 	{
-		"PostDetail",
+		"PostUpdate",
 		"/post/{id}/details",
 		"POST",
 		handlers.HandlePostUpdate,
