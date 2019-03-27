@@ -49,7 +49,8 @@ CREATE TABLE IF NOT EXISTS post (
   message TEXT NOT NULL,
   parent INTEGER DEFAULT 0,
   isEdited BOOLEAN DEFAULT false,
-  created TIMESTAMPTZ DEFAULT now()
+  created TIMESTAMPTZ DEFAULT now(),
+  path INTEGER[]
 );
 
 

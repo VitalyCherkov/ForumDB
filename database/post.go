@@ -7,16 +7,24 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 const (
-	colsToInsert    = 7
-	lastRowTemplate = "($%d, $%d, $%d, $%d, $%d, $%d, $%d)"
+	colsToInsert    = 8
+	lastRowTemplate = "($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)"
 	rowTemplate     = lastRowTemplate + ","
 
-	queryPostGetDetail = `SELECT * FROM post WHERE post.id = $1`
+	queryPostGetDetail = `
+		SELECT id, author, created, forum, isEdited, message, parent, thread
+		FROM post WHERE post.id = $1
+	`
 
-	queryPostUpdate = `UPDATE post SET message = $1 WHERE post.id = $2 RETURNING *`
+	queryPostUpdate = `
+		UPDATE post SET message = $1 WHERE post.id = $2
+        RETURNING id, author, created, forum, isEdited, message, parent, thread
+	`
 )
 
 func PostCreateList(
@@ -35,13 +43,13 @@ func PostCreateList(
 	}
 
 	usersMap := make(map[string]string)
-	parentPostsMap := make(map[uint64]interface{})
+	parentPostsMap := make(map[uint64][]int64)
 	for index, p := range *posts {
 		lower := strings.ToLower(p.Author)
 		(*posts)[index].Author = lower
 		usersMap[lower] = p.Author
 		if p.Parent != 0 {
-			parentPostsMap[p.Parent] = struct{}{}
+			parentPostsMap[p.Parent] = nil
 		}
 	}
 
@@ -74,7 +82,7 @@ func PostCreateList(
 				}
 			} else {
 				return nil, &models.DatabaseError{
-					Message: "posts create: " + err.Error(),
+					Message: "posts create: users check: " + err.Error(),
 				}
 			}
 		} else {
@@ -83,7 +91,7 @@ func PostCreateList(
 	}
 
 	// Проверка существования всех родительских постов
-	parentPostStatement, err := transaction.Preparex(`SELECT thread FROM post WHERE post.id = $1`)
+	parentPostStatement, err := transaction.Preparex(`SELECT thread, path FROM post WHERE post.id = $1`)
 	if err != nil {
 		return nil, &models.DatabaseError{
 			Message: "posts create: " + err.Error(),
@@ -92,7 +100,8 @@ func PostCreateList(
 	defer parentPostStatement.Close()
 	for k := range parentPostsMap {
 		parentThreadId := uint64(0)
-		err = parentPostStatement.QueryRow(k).Scan(&parentThreadId)
+		var path []int64
+		err = parentPostStatement.QueryRow(k).Scan(&parentThreadId, pq.Array(&path))
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return nil, &models.ErrorPostIncorrectThreadOfParent{
@@ -109,6 +118,7 @@ func PostCreateList(
 				ParentThreadId: parentThreadId,
 			}
 		}
+		parentPostsMap[k] = path
 	}
 
 	// Выборка всех будущих id
@@ -136,20 +146,21 @@ func PostCreateList(
 		return nil, err
 	}
 
-	query.WriteString("INSERT INTO post (id, author, thread, forum, message, parent, created) VALUES ")
+	query.WriteString("INSERT INTO post (id, author, thread, forum, message, parent, created, path) VALUES ")
 	args := make([]interface{}, 0, colsToInsert*postCount)
 
-	rowArgIndexes := []interface{}{1, 2, 3, 4, 5, 6, 7}
+	rowArgIndexes := []interface{}{1, 2, 3, 4, 5, 6, 7, 8}
 	for index, post := range *posts {
 		args = append(
 			args,
-			(*posts)[index].Id,
+			post.Id,
 			usersMap[post.Author],
 			targetThread.Id,
 			targetThread.Forum,
 			post.Message,
 			post.Parent,
 			now,
+			pq.Array(append(parentPostsMap[post.Parent], int64(post.Id))),
 		)
 		(*posts)[index].Author = usersMap[post.Author]
 		(*posts)[index].Thread = targetThread.Id

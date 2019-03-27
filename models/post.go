@@ -13,6 +13,8 @@ type PostDetail struct {
 	Forum    string    `json:"forum,omitempty"`
 	Thread   uint64    `json:"thread,omitempty"`
 	IsEdited bool      `json:"isEdited,omitempty"`
+
+	Path []int64 `json:"-"`
 }
 
 //easyjson:json
