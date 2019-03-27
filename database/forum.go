@@ -132,20 +132,20 @@ func ForumGetUsers(
 	} else {
 		descPart = " ASC"
 	}
-
-	//SELECT F.nickname as nickname, fullname, email, about FROM
-	//forum_fuser F
-	//JOIN fuser ON F.nickname = fuser.nickname
+	//
+	//SELECT F.nickname as nickname, fullname, email, about FROM (
+	//	SELECT nickname FROM forum_fuser as F
 	//WHERE slug = $1 %s
-	//ORDER BY F.nickname %s %s
+	//ORDER BY nickname %s %s
+	//) F
+	//JOIN fuser ON F.nickname = fuser.nickname
 
 	query := fmt.Sprintf(`
-		SELECT F.nickname as nickname, fullname, email, about FROM (
-			SELECT nickname FROM forum_fuser as F
-			WHERE slug = $1 %s
-			ORDER BY nickname %s %s
-		) F
+		SELECT F.nickname as nickname, fullname, email, about FROM
+		forum_fuser F
 		JOIN fuser ON F.nickname = fuser.nickname
+		WHERE slug = $1 %s
+		ORDER BY F.nickname %s %s
 	`, nicknameCmpPart, descPart, limitPart)
 
 	users = &models.UserDetailList{}
