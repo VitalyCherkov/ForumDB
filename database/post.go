@@ -208,6 +208,7 @@ func PostCreateList(
 		} else {
 			query.WriteString(" ($1, $" + strconv.Itoa(userCurIndex+1) + ")")
 		}
+		userCurIndex++
 		args = append(args, nickname)
 	}
 	query.WriteString(` ON CONFLICT DO NOTHING`)
