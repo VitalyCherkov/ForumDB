@@ -278,7 +278,7 @@ func PostListGet(
 
 	query := strings.Builder{}
 	query.WriteString(`
-		SELECT P.id, P.author, P.created, P.forum, P.isEdited, P.message, P.parent, P.thread, P.path
+		SELECT P.id, P.author, P.created, P.forum, P.isEdited, P.message, P.parent, P.thread
 		FROM post P
 	`)
 	args := make([]interface{}, 0, 3)
@@ -299,7 +299,7 @@ func PostListGet(
 		}
 
 		if desc {
-			query.WriteString(` ORDER BY P.path[1] DESC`)
+			query.WriteString(` ORDER BY P.path DESC`)
 		} else {
 			query.WriteString(` ORDER BY P.path`)
 		}
@@ -341,9 +341,9 @@ func PostListGet(
 			args = append(args, limit)
 		}
 		if desc {
-			query.WriteString(`) Po ORDER BY P.path[1] DESC, path`)
+			query.WriteString(` ) ORDER BY P.path[1] DESC, path`)
 		} else {
-			query.WriteString(`) Po ORDER BY P.path`)
+			query.WriteString(` ) ORDER BY P.path`)
 		}
 	default:
 		// flat

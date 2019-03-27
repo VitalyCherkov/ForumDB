@@ -155,6 +155,7 @@ func HandlePostListGet(env *models.Env) http.HandlerFunc {
 			return
 		}
 		if !processErrorNotFound(w, err) {
+			fmt.Println("Post list get: " + err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	}
