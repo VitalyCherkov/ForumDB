@@ -14,7 +14,7 @@ CREATE UNIQUE INDEX index_on_fuser_nickname
 
 CREATE TABLE IF NOT EXISTS forum (
   slug CITEXT PRIMARY KEY,
-  author CITEXT REFERENCES fuser(nickname) NOT NULL,
+  author CITEXT NOT NULL,
   title TEXT NOT NULL,
   posts INTEGER DEFAULT 0,
   threads INTEGER DEFAULT 0
@@ -43,9 +43,11 @@ CREATE TABLE IF NOT EXISTS vote (
 
 CREATE TABLE IF NOT EXISTS forum_fuser (
   slug CITEXT NOT NULL,
-  nickname CITEXT COLLATE "C" NOT NULL,
-  PRIMARY KEY(slug, nickname)
+  nickname CITEXT COLLATE "C" NOT NULL
 );
+
+CREATE UNIQUE INDEX index_on_forum_fuser
+  ON forum_fuser(slug, nickname);
 
 CREATE TABLE IF NOT EXISTS post (
   id SERIAL PRIMARY KEY,
@@ -145,7 +147,7 @@ RETURNS TRIGGER AS $post_set_edited$
 
 $post_set_edited$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS post_set_edited ON post;
+DROP TRIGGER IF EXISTS posft_set_edited ON post;
 CREATE TRIGGER post_set_edited BEFORE UPDATE
   ON post
   FOR ROW

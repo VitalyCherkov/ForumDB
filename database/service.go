@@ -6,6 +6,7 @@ func ServiceClear(env *models.Env) {
 	_, _ = env.DB.Exec(`TRUNCATE TABLE fuser CASCADE`)
 	_, _ = env.DB.Exec(`TRUNCATE TABLE post CASCADE`)
 	_, _ = env.DB.Exec(`TRUNCATE TABLE forum_fuser CASCADE`)
+	_, _ = env.DB.Exec(`TRUNCATE TABLE forum CASCADE`)
 }
 
 func ServiceStatus(env *models.Env) (status *models.ServiceStatus, err error) {

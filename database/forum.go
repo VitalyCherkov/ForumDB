@@ -45,6 +45,16 @@ func ForumGet(env *models.Env, slug string) (forum *models.ForumDetail, err erro
 }
 
 func ForumCreate(env *models.Env, short *models.ForumSort) (forum *models.ForumDetail, err error) {
+	_, err = UserGet(env, short.Author)
+	if err != nil {
+		return nil, &models.ErrorNotFound{
+			Message: fmt.Sprintf(
+				`Forum error: can not find user by nickname: "%s"`,
+				short.Author,
+			),
+		}
+	}
+
 	forum = &models.ForumDetail{}
 	err = env.DB.Get(forum, queryForumCreate, short.Slug, short.Author, short.Title)
 	if err == nil {
@@ -60,14 +70,14 @@ func ForumCreate(env *models.Env, short *models.ForumSort) (forum *models.ForumD
 			Forum: forum,
 		}
 	}
-	if pqCode == notNullViolationCode {
-		return nil, &models.ErrorNotFound{
-			Message: fmt.Sprintf(
-				`Forum error: can not find user by nickname: "%s"`,
-				short.Author,
-			),
-		}
-	}
+	//if pqCode == notNullViolationCode {
+	//	return nil, &models.ErrorNotFound{
+	//		Message: fmt.Sprintf(
+	//			`Forum error: can not find user by nickname: "%s"`,
+	//			short.Author,
+	//		),
+	//	}
+	//}
 
 	return nil, &models.DatabaseError{
 		Message: fmt.Sprintf(`Forum error: can not create new forum: %s`, err.Error()),
