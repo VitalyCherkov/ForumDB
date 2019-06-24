@@ -19,3 +19,10 @@ DROP TABLE IF EXISTS fuser;
 
 ALTER DATABASE docker SET timezone TO 'UTC';
 DROP EXTENSION IF EXISTS citext CASCADE;
+
+DROP INDEX IF EXISTS index_fuser_nickname;
+DROP INDEX IF EXISTS index_thread_slug;
+DROP INDEX IF EXISTS index_forum_fuser;
+DROP INDEX IF EXISTS index_user_posts;
+DROP INDEX IF EXISTS index_post_id_thread;
+DROP INDEX IF EXISTS index_thread_forum_created;

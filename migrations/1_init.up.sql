@@ -3,11 +3,14 @@ CREATE EXTENSION IF NOT EXISTS citext;
 ALTER DATABASE docker SET timezone TO 'UTC-3';
 
 CREATE TABLE IF NOT EXISTS fuser (
-  nickname CITEXT COLLATE ucs_basic PRIMARY KEY,
+  nickname CITEXT NOT NULL,
   fullname TEXT NOT NULL,
   email CITEXT UNIQUE NOT NULL,
   about TEXT
 );
+
+CREATE UNIQUE INDEX index_on_fuser_nickname
+  ON fuser (nickname COLLATE "C");
 
 CREATE TABLE IF NOT EXISTS forum (
   slug CITEXT PRIMARY KEY,
@@ -19,7 +22,7 @@ CREATE TABLE IF NOT EXISTS forum (
 
 CREATE TABLE IF NOT EXISTS thread (
   id SERIAL PRIMARY KEY,
-  slug CITEXT UNIQUE,
+  slug CITEXT,
   forum CITEXT REFERENCES forum(slug) NOT NULL,
   author CITEXT REFERENCES fuser(nickname) NOT NULL,
   created TIMESTAMPTZ DEFAULT now(),
@@ -27,6 +30,9 @@ CREATE TABLE IF NOT EXISTS thread (
   message TEXT NOT NULL,
   votes INTEGER DEFAULT 0
 );
+
+CREATE UNIQUE INDEX index_on_thread_slug
+  ON thread (slug);
 
 CREATE TABLE IF NOT EXISTS vote (
   id INTEGER REFERENCES thread(id) NOT NULL,
@@ -37,7 +43,7 @@ CREATE TABLE IF NOT EXISTS vote (
 
 CREATE TABLE IF NOT EXISTS forum_fuser (
   slug CITEXT REFERENCES forum(slug) NOT NULL,
-  nickname CITEXT COLLATE ucs_basic REFERENCES fuser(nickname) NOT NULL,
+  nickname CITEXT COLLATE "C" REFERENCES fuser(nickname) NOT NULL,
   PRIMARY KEY(slug, nickname)
 );
 
@@ -144,3 +150,10 @@ CREATE TRIGGER post_set_edited BEFORE UPDATE
   ON post
   FOR ROW
   EXECUTE PROCEDURE post_set_edited();
+
+CREATE INDEX index_on_post_id_thread ON post (thread, id);
+
+CREATE INDEX index_on_thread_forum_created ON thread(forum, created);
+
+CREATE INDEX index_on_post_parent_path
+  ON post (parent, path);
