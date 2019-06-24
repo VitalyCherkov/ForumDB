@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS thread (
 
 CREATE UNIQUE INDEX index_on_thread_slug
   ON thread (slug);
-X
+
 CREATE TABLE IF NOT EXISTS vote (
   id INTEGER REFERENCES thread(id) NOT NULL,
   nickname CITEXT REFERENCES fuser(nickname) NOT NULL,
