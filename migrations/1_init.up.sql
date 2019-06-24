@@ -42,15 +42,15 @@ CREATE TABLE IF NOT EXISTS vote (
 );
 
 CREATE TABLE IF NOT EXISTS forum_fuser (
-  slug CITEXT REFERENCES forum(slug) NOT NULL,
-  nickname CITEXT COLLATE "C" REFERENCES fuser(nickname) NOT NULL,
+  slug CITEXT NOT NULL,
+  nickname CITEXT COLLATE "C" NOT NULL,
   PRIMARY KEY(slug, nickname)
 );
 
 CREATE TABLE IF NOT EXISTS post (
   id SERIAL PRIMARY KEY,
-  author CITEXT REFERENCES fuser(nickname) NOT NULL,
-  thread INTEGER REFERENCES thread(id) NOT NULL,
+  author CITEXT NOT NULL,
+  thread INTEGER NOT NULL,
   forum TEXT NOT NULL,
   message TEXT NOT NULL,
   parent INTEGER DEFAULT 0,
