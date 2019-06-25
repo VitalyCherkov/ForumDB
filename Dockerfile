@@ -36,7 +36,7 @@ RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/p
 RUN echo "fsync = 'off'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 RUN echo "listen_addresses = '*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 RUN echo "synchronous_commit = 'off'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-RUN echo "shared_buffers = 32MB" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+RUN echo "shared_buffers = 250MB" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 RUN echo "effective_cache_size = 768MB" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 RUN echo "work_mem = 16MB" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 RUN echo "logging_collector = 'off'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf

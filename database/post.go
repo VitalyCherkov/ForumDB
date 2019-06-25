@@ -277,6 +277,140 @@ func PostListGet(
 		return nil, err
 	}
 
+	descStr := ""
+	if desc {
+		descStr = "DESC"
+	} else {
+		descStr = "ASC"
+	}
+
+	query := strings.Builder{}
+	args := make([]interface{}, 0, 3)
+
+	switch sortType {
+	case "tree":
+		query.WriteString(`
+			SELECT P.id, P.author, P.created, P.forum, P.isEdited, P.message, P.parent, P.thread
+			FROM post P
+			WHERE thread = $1
+		`)
+		args = append(args, targetThread.Id)
+		if since > 0 {
+			if desc {
+				query.WriteString(` AND path < (SELECT path FROM post WHERE id = $2)`)
+			} else {
+				query.WriteString(` AND path > (SELECT path FROM post WHERE id = $2)`)
+			}
+			args = append(args, since)
+		}
+		query.WriteString(` ORDER BY path `)
+		query.WriteString(descStr)
+
+		if limit > 0 {
+			if since > 0 {
+				query.WriteString(` LIMIT $3`)
+			} else {
+				query.WriteString(` LIMIT $2`)
+			}
+			args = append(args, limit)
+		}
+
+	case "parent_tree":
+		query.WriteString(`
+			WITH parents AS (
+				SELECT id from post
+				WHERE thread = $1
+				AND parent = 0
+		`)
+		args = append(args, targetThread.Id)
+		if since > 0 {
+			if desc {
+				query.WriteString(` AND path < (SELECT path[1:1] FROM post WHERE id = $2)`)
+			} else {
+				query.WriteString(` AND path > (SELECT path FROM post WHERE id = $2)`)
+			}
+			args = append(args, since)
+		}
+		if desc {
+			query.WriteString(` ORDER BY id DESC`)
+		} else {
+			query.WriteString(` ORDER BY id ASC`)
+		}
+		if limit > 0 {
+			if since > 0 {
+				query.WriteString(` LIMIT $3`)
+			} else {
+				query.WriteString(` LIMIT $2`)
+			}
+			args = append(args, limit)
+		}
+		query.WriteString(` ) SELECT P.id, P.author, P.created, P.forum, P.isEdited, P.message, P.parent, P.thread
+			FROM post P WHERE path[1] IN (SELECT id FROM parents) ORDER BY path[1]`)
+		if desc {
+			query.WriteString(" DESC, path ASC")
+		} else {
+			query.WriteString(" ASC, path ASC")
+		}
+	default:
+		query.WriteString(`
+			SELECT P.id, P.author, P.created, P.forum, P.isEdited, P.message, P.parent, P.thread
+			FROM post P WHERE thread = $1
+		`)
+		args = append(args, targetThread.Id)
+
+		if since > 0 {
+			if desc {
+				query.WriteString(` AND id < $2`)
+			} else {
+				query.WriteString(` AND id > $2`)
+			}
+			args = append(args, since)
+		}
+		if desc {
+			query.WriteString(` ORDER BY created DESC, id DESC`)
+		} else {
+			query.WriteString(` ORDER BY created ASC, id ASC`)
+		}
+		if limit > 0 {
+			if since > 0 {
+				query.WriteString(` LIMIT $3`)
+			} else {
+				query.WriteString(` LIMIT $2`)
+			}
+		}
+		args = append(args, limit)
+	}
+
+	posts = &models.PostDetailList{}
+	err = env.DB.Select(posts, query.String(), args...)
+	if err != nil {
+		return nil, &models.DatabaseError{
+			Message: fmt.Sprintf(
+				`post list get: sort_type="%s", limit="%d", since="%d", desc="%v"\n\terr: %s`,
+				sortType,
+				limit,
+				since,
+				desc,
+				err.Error(),
+			),
+		}
+	}
+	return posts, nil
+}
+
+func PostListGetOld(
+	env *models.Env,
+	slug *string,
+	threadId *uint64,
+	sortType string,
+	since, limit uint64,
+	desc bool,
+) (posts *models.PostDetailList, err error) {
+	targetThread, err := ThreadGetBySlugOrId(env, slug, threadId)
+	if err != nil {
+		return nil, err
+	}
+
 	query := strings.Builder{}
 	query.WriteString(`
 		SELECT P.id, P.author, P.created, P.forum, P.isEdited, P.message, P.parent, P.thread
