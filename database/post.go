@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	colsToInsert    = 8
-	lastRowTemplate = "($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)"
+	colsToInsert    = 9
+	lastRowTemplate = "($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)"
 	rowTemplate     = lastRowTemplate + ","
 
 	queryPostGetDetail = `
@@ -146,11 +146,12 @@ func PostCreateList(
 		return nil, err
 	}
 
-	query.WriteString("INSERT INTO post (id, author, thread, forum, message, parent, created, path) VALUES ")
+	query.WriteString("INSERT INTO post (id, author, thread, forum, message, parent, created, path, root) VALUES ")
 	args := make([]interface{}, 0, colsToInsert*postCount)
 
-	rowArgIndexes := []interface{}{1, 2, 3, 4, 5, 6, 7, 8}
+	rowArgIndexes := []interface{}{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	for index, post := range *posts {
+		path := append(parentPostsMap[post.Parent], int64(post.Id))
 		args = append(
 			args,
 			post.Id,
@@ -160,7 +161,8 @@ func PostCreateList(
 			post.Message,
 			post.Parent,
 			now,
-			pq.Array(append(parentPostsMap[post.Parent], int64(post.Id))),
+			pq.Array(path),
+			path[0],
 		)
 		(*posts)[index].Author = usersMap[post.Author]
 		(*posts)[index].Thread = targetThread.Id
@@ -345,7 +347,7 @@ func PostListGet(
 			args = append(args, limit)
 		}
 		query.WriteString(` ) SELECT P.id, P.author, P.created, P.forum, P.isEdited, P.message, P.parent, P.thread
-			FROM post P WHERE path[1] IN (SELECT id FROM parents) ORDER BY path[1]`)
+			FROM post P WHERE root IN (SELECT id FROM parents) ORDER BY root`)
 		if desc {
 			query.WriteString(" DESC, path ASC")
 		} else {

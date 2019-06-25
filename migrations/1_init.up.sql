@@ -58,7 +58,8 @@ CREATE TABLE IF NOT EXISTS post (
   parent INTEGER DEFAULT 0,
   isEdited BOOLEAN DEFAULT false,
   created TIMESTAMPTZ DEFAULT now(),
-  path INTEGER[]
+  path INTEGER[],
+  root INTEGER NOT NULL
 );
 
 
@@ -157,5 +158,5 @@ CREATE INDEX index_on_post_id_thread ON post (thread, id);
 
 CREATE INDEX index_on_thread_forum_created ON thread(forum, created);
 
-CREATE INDEX index_on_post_parent_path
-  ON post (parent, path);
+CREATE INDEX index_on_post_root_path
+  ON post (root, path);
