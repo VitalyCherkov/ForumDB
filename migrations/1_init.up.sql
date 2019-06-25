@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS forum (
 CREATE TABLE IF NOT EXISTS thread (
   id SERIAL PRIMARY KEY,
   slug CITEXT,
-  forum CITEXT REFERENCES forum(slug) NOT NULL,
-  author CITEXT REFERENCES fuser(nickname) NOT NULL,
+  forum CITEXT NOT NULL,
+  author CITEXT NOT NULL,
   created TIMESTAMPTZ DEFAULT now(),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
@@ -35,8 +35,8 @@ CREATE UNIQUE INDEX index_on_thread_slug
   ON thread (slug);
 
 CREATE TABLE IF NOT EXISTS vote (
-  id INTEGER REFERENCES thread(id) NOT NULL,
-  nickname CITEXT REFERENCES fuser(nickname) NOT NULL,
+  id INTEGER  NOT NULL,
+  nickname CITEXT NOT NULL,
   voice INTEGER NOT NULL,
   PRIMARY KEY(id, nickname)
 );
