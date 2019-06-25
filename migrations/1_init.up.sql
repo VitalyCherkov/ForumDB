@@ -158,5 +158,11 @@ CREATE INDEX index_on_post_id_thread ON post (thread, id);
 
 CREATE INDEX index_on_thread_forum_created ON thread(forum, created);
 
-CREATE INDEX index_on_post_root_path
+CREATE INDEX index_on_post_path
+  ON post (path);
+
+CREATE INDEX index_on_post_id_created
+  ON post (id, created);
+
+CREATE INDEX index_on_post_root
   ON post (root, path);

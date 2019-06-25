@@ -36,6 +36,24 @@ const (
 	`
 )
 
+func ThreadGetBySlugOrIdWITH(slug *string, id *uint64) (query *strings.Builder, err error) {
+	query = &strings.Builder{}
+
+	query.WriteString(`WITH threadId AS ( SELECT id FROM thread`)
+	if slug != nil {
+		query.WriteString(` WHERE thread.slug = ` + *slug)
+	} else if id != nil {
+		query.WriteString(` WHERE thread.id = ` + strconv.FormatUint(*id, 10))
+	} else {
+		return nil, &models.ErrorNotFound{
+			Message: `can not find thread without neither "slug"" nor "id"`,
+		}
+	}
+
+	query.WriteString(` LIMIT 1)`)
+	return query, nil
+}
+
 func ThreadGetBySlugOrId(env *models.Env, slug *string, id *uint64) (thread *models.ThreadDetail, err error) {
 	thread = &models.ThreadDetail{}
 

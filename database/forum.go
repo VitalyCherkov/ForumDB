@@ -141,18 +141,13 @@ func ForumGetUsers(
 		descPart = " ASC"
 	}
 
-	//SELECT F.nickname as nickname, fullname, email, about FROM
-	//forum_fuser F
-	//JOIN fuser ON F.nickname = fuser.nickname
-	//WHERE slug = $1 %s
-	//ORDER BY F.nickname %s %s
-
 	query := fmt.Sprintf(`
-		SELECT F.nickname as nickname, fullname, email, about FROM (
+		SELECT F.nickname as nickname, fullname, email, about FROM
+ 		fuser JOIN (
 			SELECT nickname FROM forum_fuser as F
 			WHERE slug = $1 %s
 		) F
-		JOIN fuser ON F.nickname = fuser.nickname
+		ON F.nickname = fuser.nickname
 		ORDER BY nickname %s %s
 	`, nicknameCmpPart, descPart, limitPart)
 
