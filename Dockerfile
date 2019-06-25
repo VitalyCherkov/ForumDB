@@ -41,8 +41,6 @@ RUN echo "effective_cache_size = 768MB" >> /etc/postgresql/$PG_VERSION/main/post
 RUN echo "work_mem = 16MB" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 RUN echo "logging_collector = 'off'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 
-echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PGVER/main/pg_hba.conf
-
 # Add VOLUMEs to allow backup of config, logs and databases
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 
